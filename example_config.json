@@ -1,0 +1,27 @@
+{
+  "Strategy": {
+
+  },
+  "Business": {
+    "BusinessActor": {
+      "attrs": {
+        "name": {
+          "mandatory": true
+        },
+        "code": {
+          "mandatory": true
+        },
+        "some_custom_attribute": {
+          "mandatory": true
+        }
+      },
+      "folders": {
+
+      },
+      "prefix": "ba_"
+    }
+  },
+  "Application": {
+
+  }
+}
