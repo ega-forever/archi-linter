@@ -9,6 +9,7 @@ import { getAllXmlFilesInPath } from './utils';
 import SummaryStat from './summaryStat';
 import * as vm from 'vm';
 import exampleConfig from './exampleConfig';
+import wc from 'wildcard-match';
 
 const init = async () => {
   const lintConfigPath = path.join(process.cwd(), 'archilint.config.js');
@@ -205,14 +206,20 @@ const init = async () => {
           }
 
           // validates that entity exists only in specified folders
-          if (profileProps.folders.length && !profileProps.folders.includes(archiEntity.path) && errorLogConfig.wrongFolder.logLevel > 0) {
-            console.log(
-              chalk
-                .hex(errorLogConfig.wrongFolder.color)
-                .bold(`[wrong folder] entity[${path.join(layerInLint, archiEntity.path, archiEntity.name)} (${archiEntity.entityType})] is placed in unknown folder`)
-            );
+          if (profileProps.folders.length && errorLogConfig.wrongFolder.logLevel > 0) {
+            const isMatchFolder = profileProps.folders
+              .map((f: string) => wc(f)(archiEntity.path))
+              .find((result: boolean) => result);
 
-            summaryStat.incrementStat(errorLogConfig.wrongFolder.logLevel);
+            if (!isMatchFolder) {
+              console.log(
+                chalk
+                  .hex(errorLogConfig.wrongFolder.color)
+                  .bold(`[wrong folder] entity[${path.join(layerInLint, archiEntity.path, archiEntity.name)} (${archiEntity.entityType})] is placed in unknown folder`)
+              );
+
+              summaryStat.incrementStat(errorLogConfig.wrongFolder.logLevel);
+            }
           }
 
           if (errorLogConfig.similarEntities.logLevel > 0) {
