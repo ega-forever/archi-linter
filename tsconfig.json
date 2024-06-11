@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "rootDir": "./src",
+        "module": "commonjs",
+        "target": "es2021",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "outDir": "./dist",
+        "noEmitOnError": true,
+        "declaration": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "lib": ["es2021","esnext.asynciterable"],
+        "emitDecoratorMetadata": true,
+    },
+    "exclude": [
+      "../node_modules",
+        "dist",
+        "examples"
+    ]
+}

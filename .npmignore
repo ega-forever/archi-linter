@@ -1,0 +1,12 @@
+.idea
+eslint.config.js
+test
+temp
+binaries
+builders
+sea-config.json
+tsconfig.json
+webpack.config.js
+.gitignore
+src
+archilint.config.js

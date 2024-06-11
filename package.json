@@ -1,0 +1,46 @@
+{
+  "name": "archi-linter",
+  "version": "1.0.0",
+  "description": "linter for archi",
+  "main": "index.js",
+  "bin": "./dist/index.js",
+  "scripts": {
+    "start": "npx ts-node src/index.ts",
+    "build": "rm -rf dist && tsc",
+    "build:webpack": "rm -rf dist && webpack",
+    "build:distro:windows": "npm run build:webpack && cd builders && windows.bat",
+    "build:distro:linux": "npm run build:webpack && cd builders && ./linux.sh",
+    "build:npm": "npm run build && npm pack",
+    "lint": "npx eslint --fix src/**"
+  },
+  "author": "zyev.egor@gmail.com",
+  "homepage": "https://github.com/ega-forever/archi-linter",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "^20.14.2",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.13.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "keywords": [
+    "linter",
+    "archi",
+    "archimate",
+    "architecture"
+  ]
+}
