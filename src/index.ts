@@ -85,37 +85,70 @@ const init = async () => {
         .split(path.sep)
         .slice(1)
         .map(subPathId => folders.has(subPathId) ? folders.get(subPathId) : null)
-        .join('/');
-      const entityProfiles = en.profiles.map(pr => {
+        .join('/') || path.posix.sep;
+      const entityProfile = en.profiles.map(pr => {
         const prId = pr.href.split('#')[1];
         return profiles.find(p => p.id === prId).name;
-      });
+      })[0] || 'generic';
 
       return {
         ...en,
         path: entityPath,
-        profiles: entityProfiles
+        profile: entityProfile
       };
     });
 
-  const lintEntities = Object.values(lintConfig.model)
-    .map(el => Object.keys(el))
+  const lintEntitiesWithSpecializations = Object.values(lintConfig.model)
+    .map(elementsInLayer => {
+      const elementsInLayerNames = Object.keys(elementsInLayer);
+      return elementsInLayerNames.map(eln => ({
+        element: eln,
+        specializations: Object.keys(elementsInLayer[eln])
+      }));
+    })
     .reduce((prev, current) => {
       prev.push(...current);
       return prev;
     }, []);
 
   if (errorLogConfig.unregisteredEntities.logLevel > 0) {
-    const unregisteredEntities = entities
-      .map(pd => pd.entityType)
-      .filter(en => !lintEntities.includes(en))
-      .reduce((prev, current) => prev.add(current), new Set<string>());
+    const unregisteredEntitiesWithSpecializations = entities
+      .filter(en => {
+        const lintEntityDefinition = lintEntitiesWithSpecializations
+          .find(le => le.element === en.entityType && le.specializations.includes(en.profile));
 
-    if (unregisteredEntities.size) {
+        if (!lintEntityDefinition) {
+          return {
+            entityType: en.entityType,
+            profile: en.profile
+          };
+        }
+      })
+      .reduce((prev, current) => {
+        const elementFromMap = prev.get(current.entityType);
+        if (!elementFromMap) {
+          const profileSet = new Set<string>();
+          profileSet.add(current.profile);
+          prev.set(current.entityType, profileSet);
+        } else {
+          elementFromMap.add(current.profile);
+        }
+
+        return prev;
+      }, new Map<string, Set<string>>());
+
+    if (unregisteredEntitiesWithSpecializations.size) {
+      const unregisteredEntitiesWithSpecializationsStr = [...unregisteredEntitiesWithSpecializations.keys()]
+        .reduce((prev, current) => {
+          const elementSpecializations = `${current} (${[...unregisteredEntitiesWithSpecializations.get(current)].join(', ')})`;
+          prev.push(elementSpecializations);
+          return prev;
+        }, new Array<string>());
+
       console.log(
         chalk
           .hex(errorLogConfig.unregisteredEntities.color)
-          .bold(`there are entities, which are not specified in lint configuration file: ${[...unregisteredEntities].join(', ')}`)
+          .bold(`there are entities, for which lint rules are not specified in lint configuration file: ${[...unregisteredEntitiesWithSpecializationsStr].join('; ')}`)
       );
 
       summaryStat.incrementStat(errorLogConfig.unregisteredEntities.logLevel);
@@ -127,11 +160,13 @@ const init = async () => {
     for (const entityInLayerInLint of entitiesInLayerInLint) {
       const profilesInEntityInLayerInLint = Object.keys(lintConfig.model[layerInLint][entityInLayerInLint]);
       for (const profile of profilesInEntityInLayerInLint) {
-        const profileProps = lintConfig.model[layerInLint][entityInLayerInLint][profile];
+        const profilePropsDefinitions = lintConfig.model[layerInLint][entityInLayerInLint][profile];
+        if (!profilePropsDefinitions.length) {
+          continue;
+        }
+
         const archiEntities = entities.filter(en =>
-          en.entityType === entityInLayerInLint &&
-          (en.profiles.includes(profile) || (!en.profiles.length && profile === 'generic'))
-        );
+          en.entityType === entityInLayerInLint && en.profile === profile);
 
         if (infoLogConfig.stat.logLevel > 0) {
           console.log(
@@ -144,6 +179,33 @@ const init = async () => {
         for (const archiEntity of archiEntities) {
           // validates that all mandatory props are exist
           const archiEntityPropKeys = archiEntity.props.map(ap => ap.key);
+
+
+          const profileProps = profilePropsDefinitions
+            .sort((defA, defB) => defB.folders.length - defA.folders.length)
+            .find(def => {
+              const isMatchFolder = def.folders
+                .map((f: string) => wc(f)(archiEntity.path))
+                .find((result: boolean) => result);
+
+              return isMatchFolder || def.folders.length === 0;
+            });
+
+
+          // validates that entity exists only in specified folders
+          if (!profileProps) {
+            if (errorLogConfig.wrongFolder.logLevel > 0) {
+              console.log(
+                chalk
+                  .hex(errorLogConfig.wrongFolder.color)
+                  .bold(`[wrong folder] entity[${path.join(layerInLint, archiEntity.path, archiEntity.name)} (${archiEntity.entityType})] is placed in unknown folder`)
+              );
+
+              summaryStat.incrementStat(errorLogConfig.wrongFolder.logLevel);
+            }
+
+            continue;
+          }
 
           if (errorLogConfig.missedMandatoryProp.logLevel > 0) {
             const missedLintMandatoryProps = Object.keys(profileProps.attrs)
@@ -205,22 +267,6 @@ const init = async () => {
             }
           }
 
-          // validates that entity exists only in specified folders
-          if (profileProps.folders.length && errorLogConfig.wrongFolder.logLevel > 0) {
-            const isMatchFolder = profileProps.folders
-              .map((f: string) => wc(f)(archiEntity.path))
-              .find((result: boolean) => result);
-
-            if (!isMatchFolder) {
-              console.log(
-                chalk
-                  .hex(errorLogConfig.wrongFolder.color)
-                  .bold(`[wrong folder] entity[${path.join(layerInLint, archiEntity.path, archiEntity.name)} (${archiEntity.entityType})] is placed in unknown folder`)
-              );
-
-              summaryStat.incrementStat(errorLogConfig.wrongFolder.logLevel);
-            }
-          }
 
           if (errorLogConfig.similarEntities.logLevel > 0) {
             const similarities: any = {};
