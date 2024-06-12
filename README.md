@@ -19,11 +19,11 @@ module.exports = {
     Strategy: {},
     Business: {
       BusinessActor: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        },
-        'customers': {
+        }],
+        'customers': [{
           attrs: {
             code: {
               mandatory: true,
@@ -36,8 +36,8 @@ module.exports = {
           folders: [
             'customers/common'
           ]
-        },
-        'internal_users': {
+        }],
+        'internal_users': [{
           attrs: {
             unit: {
               mandatory: true
@@ -51,14 +51,14 @@ module.exports = {
             'units/frontoffice',
             'units/middleoffice'
           ]
-        },
+        }]
       },
       BusinessProcess: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        },
-        'org_process': {
+        }],
+        'org_process': [{
           attrs: {
             name: {
               mandatory: true
@@ -71,23 +71,23 @@ module.exports = {
             },
           },
           folders: []
-        }
-      },
+        }]
+      }
     },
     'Implementation & Migration': {
       WorkPackage: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        }
+        }]
       }
     },
     Application: {
       ApplicationService: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        }
+        }]
       }
     }
   },
@@ -120,7 +120,6 @@ module.exports = {
     }
   }
 }
-
 ```
 3) the structure of the config looks like that:
 ```
@@ -129,22 +128,24 @@ module.exports = {
   model: {
     <Archi_layer>: {
       <Archi_element>: {
-        <Archi_specialization>: {
-          attrs: [
+        <Archi_specialization>: [
             {
-            <property_key>: {
-              mandatpory: true | false,
-              rule: regex | async function | undefined,
-              similarValidator: async function | undefined
+              attrs: [
+                {
+                <property_key>: {
+                  mandatpory: true | false,
+                  rule: regex | async function | undefined,
+                  similarValidator: async function | undefined
+                },
+                ...
+              ],
+              folders: [
+                <folder_where_entity_with_this_specialization_should_be_located>,
+                ...
+              ]
             },
-            ...
-          ],
-          fodlers: [
-            <folder_where_entity_with_this_specialization_should_be_located>,
-            ...
-          ]
-       
-        }
+        ...
+        ]
       }
     }
   },
@@ -169,15 +170,95 @@ module.exports = {
 
 
 4) The core concept of archi-linter, is that each archi element may have different attributes and rules based on its specialization. 
-For instance ``business actor`` may have 3 specializations (like `user_A`, `user_B`, `user_C`), each with its own fields
-5) In case entity doesn't have any specialization (or you don't plan to use them), then you can simply replace `<Archi_specialization>` with reserved keyword `generic` like this:
+For instance ``business actor`` may have 3 specializations (like `user_A`, `user_B`, `user_C`), each with its own fields. 
+5) Furthermore, under each specialization, entities may have different set of props and can be placed in different directories. 
+Archi-linter allows to specify several definitions for the same element's specialization (that is why it's an array). 
+In order to find the suitable definition for the certain entity with the certain specialization, 
+linter will filter out definitions by folders (just compare folders in definitions against entity's folder).
+Also, this functionality can be useful for ``view`` element, since ``view`` doesn't have a specialization, but still can have props. In config you can do smth like that:
+````
+module.exports = {
+  dir: './model',
+  model: {
+    ...
+    Views: {
+      ArchimateDiagramModel: {
+        generic: [
+          {
+            attrs: {
+              'Type': {
+                mandatory: false
+              },
+              'Business_unit': {
+                mandatory: false
+              }
+            },
+            folders: [
+              'Concepts/**'
+            ]
+          },
+          {
+            attrs: {
+              'description': {
+                mandatory: false
+              },
+              'domain': {
+                mandatory: false
+              },
+            },
+            folders: [
+              'Architecture/**'
+            ]
+          },
+          {
+            attrs: {},
+            folders: []
+          }
+        ]
+      }
+    }
+  },
+  errors: {
+    unknownProps: {
+      logLevel: 1,
+      color: '#fdd404'
+    },
+    wrongPropValue: {
+      logLevel: 1,
+      color: '#fd0421'
+    },
+    missedMandatoryProp: {
+      logLevel: 1,
+      color: '#fd0463'
+    },
+    wrongFolder: {
+      logLevel: 2,
+      color: '#fd0404'
+    },
+    similarEntities: {
+      logLevel: 1,
+      color: '#fdd404'
+    }
+  },
+  info: {
+    stat: {
+      logLevel: 1,
+      color: '#25fd04'
+    },
+    summary: {
+      logLevel: 1,
+      color: '#0c04fd'
+    }
+  }
+````
+6) In case entity doesn't have any specialization (or you don't plan to use them), then you can simply replace `<Archi_specialization>` with reserved keyword `generic` like this:
 ````
 {
   dir: <model_directory>,
   model: {
     <Archi_layer>: {
       <Archi_element>: {
-        generic: {
+        generic: [{
           attrs: [
             {
             <property_key>: {
@@ -187,12 +268,12 @@ For instance ``business actor`` may have 3 specializations (like `user_A`, `user
             },
             ...
           ],
-          fodlers: [
+          folders: [
             <folder_where_entity_with_this_specialization_should_be_located>,
             ...
           ]
        
-        }
+        }]
       }
     }
   },
@@ -201,7 +282,7 @@ For instance ``business actor`` may have 3 specializations (like `user_A`, `user
 ````
 The linter will use rules under `generic` for entities without specified specialization. 
 This also applies, when there are entities with and without specialization. So, you can specify specializations with their rules + specify `generic` specialization
-6) the `attrs` contains the entity props. Each prop has its own validators. For now, there are 3 validators: 
+7) the `attrs` contains the entity props. Each prop has its own validators. For now, there are 3 validators: 
    
 | validator        | optional | format                                                                                                                                      | description                                                                                                                                                |
 |----------------- | -------- |---------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -209,8 +290,9 @@ This also applies, when there are entities with and without specialization. So, 
 | rule             |   true   | regex (like `/APP-[0-9]{1,3}-[0-9]{1,3}[\.]{0,1}[0-9]{0,3}/g`) or async function ``async (prop_key, prop_value): boolean => true or false`` | checks if prop's value is correct                                                                                                                          |
 | similarValidator |   true   | async function ``async (prop_key, prop_value, prop_values_of_other_entities): boolean=> true or false``                                     | checks if there are equal or similar values for the same property's key within the same specialization                                                     |
 
-7) the ``folders`` contains the relative paths (like you see in Archi), where entities should be located. Useful, when you have a strict folder structure and want to follow it. This one is optional, and you can leave folders as empty array `[]`. 
-8) the ``errors`` contains error settings per each error type:
+8) the ``folders`` contains the relative paths (like you see in Archi), where entities should be located. Wildcards can also be used in paths (like `Customers/**`).
+Useful, when you have a strict folder structure and want to follow it. This one is optional, and you can leave folders as empty array `[]`.
+9) the ``errors`` contains error settings per each error type:
 
 | error                | default logLevel | default color | description                                                                                                                       |
 |----------------------|------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -225,7 +307,7 @@ All error types may have 3 logLevels: 0 - mute error, 1 - warning, 2 - error. In
 This behaviour is done, in order to make CI / git pre-hooks fail due to error (and not allow to push bad formatted model as a result) 
 If any of the errors are not specified in config, then default setting will be used.
 
-9) the `info` contains settings for stats output. The structure similar to errors. There are 2 kinds of `info`: `stats` - will display verbose output about scanned entities, and `summary` - will display stats about found errors
+10) the `info` contains settings for stats output. The structure similar to errors. There are 2 kinds of `info`: `stats` - will display verbose output about scanned entities, and `summary` - will display stats about found errors
 
 
 | stats                | default logLevel | default color | description                                        |

@@ -4,11 +4,11 @@ export default `module.exports = {
     Strategy: {},
     Business: {
       BusinessActor: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        },
-        'customers': {
+        }],
+        'customers': [{
           attrs: {
             code: {
               mandatory: true,
@@ -21,8 +21,8 @@ export default `module.exports = {
           folders: [
             'customers/common'
           ]
-        },
-        'internal_users': {
+        }],
+        'internal_users': [{
           attrs: {
             unit: {
               mandatory: true
@@ -36,14 +36,14 @@ export default `module.exports = {
             'units/frontoffice',
             'units/middleoffice'
           ]
-        },
+        }]
       },
       BusinessProcess: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        },
-        'org_process': {
+        }],
+        'org_process': [{
           attrs: {
             name: {
               mandatory: true
@@ -56,23 +56,23 @@ export default `module.exports = {
             },
           },
           folders: []
-        }
-      },
+        }]
+      }
     },
     'Implementation & Migration': {
       WorkPackage: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        }
+        }]
       }
     },
     Application: {
       ApplicationService: {
-        generic: {
+        generic: [{
           attrs: {},
           folders: []
-        }
+        }]
       }
     }
   },
