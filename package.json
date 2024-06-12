@@ -1,6 +1,6 @@
 {
   "name": "archi-linter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "linter for archi",
   "main": "index.js",
   "bin": "./dist/index.js",
