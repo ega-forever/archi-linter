@@ -1,36 +1,51 @@
+export enum ErrorTypes {
+  unknownProps = 'unknownProps',
+  wrongPropValue = 'wrongPropValue',
+  missedMandatoryProp = 'missedMandatoryProp',
+  wrongFolder = 'wrongFolder',
+  unregisteredEntities = 'unregisteredEntities',
+  similarEntities = 'similarEntities'
+}
+
+export enum StatTypes {
+  stat = 'stat',
+  summary = 'summary'
+}
+
+
 export const errorsDefaultConfig = {
-  unknownProps: {
+  [ErrorTypes.unknownProps]: {
     logLevel: 1,
     color: '#fdd404'
   },
-  wrongPropValue: {
+  [ErrorTypes.wrongPropValue]: {
     logLevel: 1,
     color: '#fdd404'
   },
-  missedMandatoryProp: {
+  [ErrorTypes.missedMandatoryProp]: {
     logLevel: 1,
     color: '#fdd404'
   },
-  wrongFolder: {
+  [ErrorTypes.wrongFolder]: {
     logLevel: 1,
     color: '#fdd404'
   },
-  unregisteredEntities: {
+  [ErrorTypes.unregisteredEntities]: {
     logLevel: 1,
     color: '#fdd404'
   },
-  similarEntities: {
+  [ErrorTypes.similarEntities]: {
     logLevel: 1,
     color: '#fdd404'
   }
 };
 
 export const infoLogDefaultConfig = {
-  stat: {
+  [StatTypes.stat]: {
     logLevel: 1,
     color: '#25fd04'
   },
-  summary: {
+  [StatTypes.summary]: {
     logLevel: 1,
     color: '#0468fd'
   }
