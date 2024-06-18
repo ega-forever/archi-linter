@@ -32,7 +32,7 @@ export const buildModelElementsFromCoArchiXML = async (archiDir: string): Promis
       id: string,
       name: string,
       href: string
-    }>, // todo
+    }>,
     type: string,
     props: { [key: string]: string },
     filePath: string

@@ -21,8 +21,8 @@ module.exports = {
     extensions: ['.ts', '.js']
   },
   output: {
-    filename: 'bundle.ajs',
-    path: path.resolve(__dirname, 'dist'),
+    filename: 'linter.ajs',
+    path: path.resolve(__dirname, 'binaries'),
   },
   optimization: {
     minimize: false

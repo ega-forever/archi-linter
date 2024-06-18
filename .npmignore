@@ -3,10 +3,11 @@ eslint.config.js
 test
 temp
 binaries
+dist_binaries
 builders
 sea-config.json
 tsconfig.json
-webpack.config.js
+*.config.js
 .gitignore
 src
 archilint.config.js

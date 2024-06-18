@@ -1,6 +1,11 @@
 # Archi-linter
 
-Linter for Archi projects which use coArchi plugin.
+Linter for Archi studio. 
+
+Supports:
+1) .archimate files
+2) coArchi xml files (which are placed in ``model`` dir)
+3) jArchi
 
 ## Installation
 
@@ -9,9 +14,20 @@ Linter for Archi projects which use coArchi plugin.
 $ npm install -g archi-linter
 ```
 
+### As standalone linter
+Check [release page](https://github.com/ega-forever/archi-linter/releases)
+
+### As jArchi script
+1) Obtain a linter.ajs file from [release page](https://github.com/ega-forever/archi-linter/releases)
+2) use it as a normal script in Archi studio
+3) the script will place (and search) archilint.config.js in the same directory (where script is placed)
+
 ## How does it work?
-1) Run command in current Archi project (where `model` directory is located): ``archi-linter``
-2) In case lint file hasn't been found, then linter will create one (`archilint.config.js`) with the following structure:
+
+### As standalone linter
+1) download the binary file (linter) for your platform from the [release page](https://github.com/ega-forever/archi-linter/releases)
+2) Run linter in current Archi project (for instance ``sh ./archi-linter``)
+3) In case lint file hasn't been found, then linter will create one (`archilint.config.js`) with the following structure:
 ```
 module.exports = {
   dir: './model',
@@ -121,10 +137,11 @@ module.exports = {
   }
 }
 ```
-3) the structure of the config looks like that:
+4) the structure of the config looks like that:
 ```
 {
   dir: <model_directory>,
+  file: <archimate_file>,
   model: {
     <Archi_layer>: {
       <Archi_element>: {
@@ -167,11 +184,181 @@ module.exports = {
   }
 }
 ```
+5) in case you use coArrchi, then specify model dir ``dir: <model_dir>``
+6) in case you use archi (plain archi with .archimate file), then instead of ``dir`` key, specify .archimate file location ``file: <achimate_file_location>``
+7) edit config according to your needs
+8) run linter again. The linter will now use created config, validate the model and return output (like any linter do)
+
+### as jArchi script
+1) download linter.ajs from the [release page](https://github.com/ega-forever/archi-linter/releases)
+2) run linter.ajs from archi studio
+3) In case lint file hasn't been found, then linter will create one (`archilint.config.js`) with the following structure:
+```
+module.exports = {
+  dir: './model',
+  model: {
+    Strategy: {},
+    Business: {
+      BusinessActor: {
+        generic: [{
+          attrs: {},
+          folders: []
+        }],
+        'customers': [{
+          attrs: {
+            code: {
+              mandatory: true,
+              rule: /customer-[0-9]{1,3}/g
+            },
+            comment: {
+              mandatory: false
+            }
+          },
+          folders: [
+            'customers/common'
+          ]
+        }],
+        'internal_users': [{
+          attrs: {
+            unit: {
+              mandatory: true
+            },
+            short_name: {
+              mandatory: true
+            }
+          },
+          folders: [
+            'units/backoffice',
+            'units/frontoffice',
+            'units/middleoffice'
+          ]
+        }]
+      },
+      BusinessProcess: {
+        generic: [{
+          attrs: {},
+          folders: []
+        }],
+        'org_process': [{
+          attrs: {
+            name: {
+              mandatory: true
+            },
+            process_number: {
+              mandatory: true
+            },
+            owner: {
+              mandatory: true
+            },
+          },
+          folders: []
+        }]
+      }
+    },
+    'Implementation & Migration': {
+      WorkPackage: {
+        generic: [{
+          attrs: {},
+          folders: []
+        }]
+      }
+    },
+    Application: {
+      ApplicationService: {
+        generic: [{
+          attrs: {},
+          folders: []
+        }]
+      }
+    }
+  },
+  errors: {
+    unknownProps: {
+      logLevel: 1,
+      color: '#fdd404'
+    },
+    wrongPropValue: {
+      logLevel: 1,
+      color: '#fd0421'
+    },
+    missedMandatoryProp: {
+      logLevel: 1,
+      color: '#fd0463'
+    },
+    wrongFolder: {
+      logLevel: 2,
+      color: '#fd0404'
+    }
+  },
+  info: {
+    stat: {
+      logLevel: 1,
+      color: '#25fd04'
+    },
+    summary: {
+      logLevel: 1,
+      color: '#0c04fd'
+    }
+  }
+}
+```
+4) the structure of the config looks like that:
+```
+{
+  dir: <model_directory>,
+  file: <archimate_file>,
+  model: {
+    <Archi_layer>: {
+      <Archi_element>: {
+        <Archi_specialization>: [
+            {
+              attrs: [
+                {
+                <property_key>: {
+                  mandatpory: true | false,
+                  rule: regex | async function | undefined,
+                  similarValidator: async function | undefined
+                },
+                ...
+              ],
+              folders: [
+                <folder_where_entity_with_this_specialization_should_be_located>,
+                ...
+              ]
+            },
+        ...
+        ]
+      }
+    }
+  },
+  errors: {
+    <errorType>: {
+      logLevel: 0 | 1 | 2,
+      color: <hex_format>
+    }
+  },
+  info: {
+    stat: {
+      logLevel: 0 | 1,
+      color: <hex_format>
+    },
+    summary: {
+      logLevel: 0 | 1,
+      color: <hex_format>
+    }
+  }
+}
+```
+5) remove ``dir`` key from config (since script will use archi state from archi studio)
+6) edit config according to your needs
+7) run linter again. The linter will now use created config, validate the model and return output to scripts console (like any linter do)
 
 
-4) The core concept of archi-linter, is that each archi element may have different attributes and rules based on its specialization. 
+### Linter concept
+
+1) The core concept of archi-linter, is that each archi element may have different attributes and rules based on its specialization. 
 For instance ``business actor`` may have 3 specializations (like `user_A`, `user_B`, `user_C`), each with its own fields. 
-5) Furthermore, under each specialization, entities may have different set of props and can be placed in different directories. 
+2) Furthermore, under each specialization, entities may have different set of props and can be placed in different directories. 
 Archi-linter allows to specify several definitions for the same element's specialization (that is why it's an array). 
 In order to find the suitable definition for the certain entity with the certain specialization, 
 linter will filter out definitions by folders (just compare folders in definitions against entity's folder).
@@ -251,7 +438,7 @@ module.exports = {
     }
   }
 ````
-6) In case entity doesn't have any specialization (or you don't plan to use them), then you can simply replace `<Archi_specialization>` with reserved keyword `generic` like this:
+3) In case entity doesn't have any specialization (or you don't plan to use them), then you can simply replace `<Archi_specialization>` with reserved keyword `generic` like this:
 ````
 {
   dir: <model_directory>,
@@ -282,7 +469,7 @@ module.exports = {
 ````
 The linter will use rules under `generic` for entities without specified specialization. 
 This also applies, when there are entities with and without specialization. So, you can specify specializations with their rules + specify `generic` specialization
-7) the `attrs` contains the entity props. Each prop has its own validators. For now, there are 3 validators: 
+4) the `attrs` contains the entity props. Each prop has its own validators. For now, there are 3 validators: 
    
 | validator        | optional | format                                                                                                                                      | description                                                                                                                                                |
 |----------------- | -------- |---------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -290,9 +477,9 @@ This also applies, when there are entities with and without specialization. So, 
 | rule             |   true   | regex (like `/APP-[0-9]{1,3}-[0-9]{1,3}[\.]{0,1}[0-9]{0,3}/g`) or async function ``async (prop_key, prop_value): boolean => true or false`` | checks if prop's value is correct                                                                                                                          |
 | similarValidator |   true   | async function ``async (prop_key, prop_value, prop_values_of_other_entities): boolean=> true or false``                                     | checks if there are equal or similar values for the same property's key within the same specialization                                                     |
 
-8) the ``folders`` contains the relative paths (like you see in Archi), where entities should be located. Wildcards can also be used in paths (like `Customers/**`).
+5) the ``folders`` contains the relative paths (like you see in Archi), where entities should be located. Wildcards can also be used in paths (like `Customers/**`).
 Useful, when you have a strict folder structure and want to follow it. This one is optional, and you can leave folders as empty array `[]`.
-9) the ``errors`` contains error settings per each error type:
+6) the ``errors`` contains error settings per each error type:
 
 | error                | default logLevel | default color | description                                                                                                                       |
 |----------------------|------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -303,11 +490,12 @@ Useful, when you have a strict folder structure and want to follow it. This one 
 | unregisteredEntities | 1                | "#fdd404"     | triggers, when linter found entities, which are not present in `archilint.config.js`                                              |
 | similarEntities      | 1                | "#fdd404"     | triggers, when linter found similar or equal values for the same prop. key among all entities.                                    |
 
-All error types may have 3 logLevels: 0 - mute error, 1 - warning, 2 - error. In case linter will find entities which falls under error with logLevel = 2, then linter will exist with status 1 (`process.exit(1)`). 
-This behaviour is done, in order to make CI / git pre-hooks fail due to error (and not allow to push bad formatted model as a result) 
+All error types may have 3 logLevels: 0 - mute error, 1 - warning, 2 - error. 
+In case linter will find entities which falls under error with logLevel = 2, then linter will exist with status 1 (`process.exit(1)`).
+Works only for standalone linter. This behaviour is done, in order to make CI / git pre-hooks fail due to error (and not allow to push bad formatted model as a result).
 If any of the errors are not specified in config, then default setting will be used.
 
-10) the `info` contains settings for stats output. The structure similar to errors. There are 2 kinds of `info`: `stats` - will display verbose output about scanned entities, and `summary` - will display stats about found errors
+7) the `info` contains settings for stats output. The structure similar to errors. There are 2 kinds of `info`: `stats` - will display verbose output about scanned entities, and `summary` - will display stats about found errors
 
 
 | stats                | default logLevel | default color | description                                        |
