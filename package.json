@@ -7,7 +7,8 @@
   "scripts": {
     "start:cli": "npx ts-node src/cli/index.ts",
     "build": "rm -rf dist && tsc",
-    "build:webpack": "rm -rf dist && webpack",
+    "build:webpack:cli": "rm -rf dist && webpack --config webpack.cli.config.js",
+    "build:webpack:archi": "rm -rf dist && webpack --config webpack.archi.config.js",
     "build:distro:windows": "npm run build:webpack && cd builders && windows.bat",
     "build:distro:linux": "npm run build:webpack && cd builders && ./linux.sh",
     "build:npm": "npm run build && npm pack",

@@ -120,7 +120,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           if (!specializationProps) {
             if (lintConfig.errors.wrongFolder.logLevel > 0) {
               lintResult.entity.errors[ErrorTypes.wrongFolder].push({
-                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type]
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization]
               });
 
               summaryStat.incrementStat(lintConfig.errors.wrongFolder.logLevel);

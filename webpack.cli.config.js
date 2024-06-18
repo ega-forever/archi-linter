@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'production',
-  entry: './src/index.ts', // Entry point of your application
+  entry: './src/runners/cli/index.ts', // Entry point of your application
   target: 'node',
   module: {
     rules: [

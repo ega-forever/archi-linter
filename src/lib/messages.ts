@@ -1,7 +1,7 @@
 import { ErrorTypes, StatTypes } from './defaultConfigs';
 import { IModelElement } from './interfaces';
 
-const entityDefinitionSubStr =(args: string[])=> `entity[${args[0]}/${args[1]}/${args[2]} (component - ${args[3]}, specialization - ${args[4]})]`;
+const entityDefinitionSubStr =(args: string[])=> `entity[${[args[0], args[1], args[2]].filter(ar=>ar).join('/')} (component - ${args[3]}, specialization - ${args[4]})]`;
 
 export default {
   errors: {

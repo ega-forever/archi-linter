@@ -60,7 +60,6 @@ const init = async () => {
   }
 
   const summaryErrors = lintResult.global.info[StatTypes.summary][0]?.args[1] || '0';
-  console.log(summaryErrors)
 
   if (parseInt(summaryErrors) === 0) {
     process.exit(1);
