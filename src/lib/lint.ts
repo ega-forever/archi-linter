@@ -8,8 +8,8 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
   const lintResult: ILintResult = {
     global: {
       info: {
-        [StatTypes.summary]: [],
-        [StatTypes.stat]: []
+        [StatTypes.stat]: [],
+        [StatTypes.summary]: []
       },
       errors: {
         [ErrorTypes.unregisteredEntities]: []

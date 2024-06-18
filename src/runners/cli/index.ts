@@ -37,25 +37,30 @@ const init = async () => {
   const modelElements = await buildModelElementsFromCoArchiXML(archiDir); // todo add condition for archimate file
 
   const lintResult = await lint({ elements: modelElements }, lintConfig);
+  const orderedOutputLevelAndKind = [
+    'global.errors',
+    'entity.errors',
+    'global.info'
+  ];
 
-  for (const outputLevel of Object.keys(lintResult)) {
-    for (const outputKind of Object.keys(lintResult[outputLevel])) {
-      for (const outputType of Object.keys(lintResult[outputLevel][outputKind])) {
-        const outputTypeConfig = lintConfig[outputKind][outputType];
-        const outputResults = lintResult[outputLevel][outputKind][outputType];
+  for (const outputLevelAndKind of orderedOutputLevelAndKind) {
+    const [level, kind] = outputLevelAndKind.split('.');
+    for (const outputType of Object.keys(lintResult[level][kind])) {
+      const outputTypeConfig = lintConfig[kind][outputType];
+      const outputResults = lintResult[level][kind][outputType];
 
-        for (const outputResult of outputResults) {
-          console.log(
-            chalk
-              .hex(outputTypeConfig.color)
-              .bold(messages[outputKind][outputLevel][outputType](outputResult.args))
-          );
-        }
+      for (const outputResult of outputResults) {
+        console.log(
+          chalk
+            .hex(outputTypeConfig.color)
+            .bold(messages[kind][level][outputType](outputResult.args))
+        );
       }
     }
   }
 
   const summaryErrors = lintResult.global.info[StatTypes.summary][0]?.args[1] || '0';
+  console.log(summaryErrors)
 
   if (parseInt(summaryErrors) === 0) {
     process.exit(1);
