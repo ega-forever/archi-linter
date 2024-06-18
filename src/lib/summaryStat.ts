@@ -3,7 +3,7 @@ export default class SummaryStat {
 
   warnings = 0;
 
-  incrementStat(logLevel) {
+  incrementStat(logLevel: number) {
     if (logLevel === 1) {
       this.warnings++;
     }

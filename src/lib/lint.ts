@@ -1,20 +1,19 @@
-import chalk from 'chalk';
-import { errorsDefaultConfig, ErrorTypes, infoLogDefaultConfig, StatTypes } from './defaultConfigs';
+import { ErrorTypes, StatTypes } from './defaultConfigs';
 import SummaryStat from './summaryStat';
 import wc from 'wildcard-match';
 import { ILintConfig, ILintResult, IModel } from './interfaces';
 
 const lint = async (model: IModel, lintConfig: ILintConfig) => {
-  const errorLogConfig = Object.assign({}, errorsDefaultConfig, lintConfig.errors);
-  const infoLogConfig = Object.assign({}, infoLogDefaultConfig, lintConfig.info);
   const summaryStat = new SummaryStat();
   const lintResult: ILintResult = {
     global: {
-      summary: {
+      info: {
         [StatTypes.summary]: [],
         [StatTypes.stat]: []
       },
-      errors: []
+      errors: {
+        [ErrorTypes.unregisteredEntities]: []
+      }
     },
     entity: {
       errors: {
@@ -22,7 +21,6 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
         [ErrorTypes.wrongPropValue]: [],
         [ErrorTypes.missedMandatoryProp]: [],
         [ErrorTypes.wrongFolder]: [],
-        [ErrorTypes.unregisteredEntities]: [],
         [ErrorTypes.similarEntities]: []
       }
     }
@@ -41,7 +39,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
       return prev;
     }, []);
 
-  if (errorLogConfig.unregisteredEntities.logLevel > 0) {
+  if (lintConfig.errors.unregisteredEntities.logLevel > 0) {
     const unregisteredEntitiesWithSpecializations = model.elements
       .filter(en => {
         const lintEntityDefinition = lintEntitiesWithSpecializations
@@ -76,10 +74,10 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
         }, new Array<string>());
 
       lintResult.global.errors[ErrorTypes.unregisteredEntities].push({
-        errorArgs: unregisteredEntitiesWithSpecializationsStr
+        args: unregisteredEntitiesWithSpecializationsStr
       });
 
-      summaryStat.incrementStat(errorLogConfig.unregisteredEntities.logLevel);
+      summaryStat.incrementStat(lintConfig.errors.unregisteredEntities.logLevel);
     }
   }
 
@@ -96,12 +94,10 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
         const archiEntities = model.elements.filter(en =>
           en.type === entityInLayerInLint && en.specialization === specialization);
 
-        if (infoLogConfig.stat.logLevel > 0) {
-          console.log(
-            chalk
-              .hex(infoLogConfig.stat.color)
-              .bold(`found layer [${layerInLint}] with entity (component - ${entityInLayerInLint}, specialization - ${specialization}) - ${archiEntities.length} items`)
-          );
+        if (lintConfig.info.stat.logLevel > 0) {
+          lintResult.global.info[StatTypes.stat].push({
+            args: [layerInLint, entityInLayerInLint, specialization, archiEntities.length.toString()]
+          });
         }
 
         for (const archiEntity of archiEntities) {
@@ -122,58 +118,52 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
 
           // validates that entity exists only in specified folders
           if (!specializationProps) {
-            if (errorLogConfig.wrongFolder.logLevel > 0) {
+            if (lintConfig.errors.wrongFolder.logLevel > 0) {
               lintResult.entity.errors[ErrorTypes.wrongFolder].push({
-                layer: layerInLint,
-                element: archiEntity,
-                errorArgs: []
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type]
               });
 
-              summaryStat.incrementStat(errorLogConfig.wrongFolder.logLevel);
+              summaryStat.incrementStat(lintConfig.errors.wrongFolder.logLevel);
             }
 
             continue;
           }
 
-          if (errorLogConfig.missedMandatoryProp.logLevel > 0) {
+          if (lintConfig.errors.missedMandatoryProp.logLevel > 0) {
             const missedLintMandatoryProps = Object.keys(specializationProps.attrs)
               .filter(key => specializationProps.attrs[key].mandatory && !archiEntityPropKeys.includes(key));
 
             if (missedLintMandatoryProps.length) {
               lintResult.entity.errors[ErrorTypes.missedMandatoryProp].push({
-                layer: layerInLint,
-                element: archiEntity,
-                errorArgs: missedLintMandatoryProps
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, missedLintMandatoryProps.join(', ')]
               });
 
-              summaryStat.incrementStat(errorLogConfig.missedMandatoryProp.logLevel);
+              summaryStat.incrementStat(lintConfig.errors.missedMandatoryProp.logLevel);
             }
           }
 
           // validates that there are no unknown props
-          if (errorLogConfig.unknownProps.logLevel > 0) {
+          if (lintConfig.errors.unknownProps.logLevel > 0) {
             const unknownPropsInEntity = archiEntityPropKeys
               .filter(pr => !specializationProps.attrs[pr]);
 
             if (unknownPropsInEntity.length) {
               lintResult.entity.errors[ErrorTypes.unknownProps].push({
-                layer: layerInLint,
-                element: archiEntity,
-                errorArgs: unknownPropsInEntity
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, unknownPropsInEntity.join(', ')]
               });
 
-              summaryStat.incrementStat(errorLogConfig.unknownProps.logLevel);
+              summaryStat.incrementStat(lintConfig.errors.unknownProps.logLevel);
             }
           }
 
           // validates rules per each prop (if rule is specified)
-          if (errorLogConfig.wrongPropValue.logLevel > 0) {
+          if (lintConfig.errors.wrongPropValue.logLevel > 0) {
             const wrongFormatForProps: Array<{ key: string, value: string }> = [];
             for (const propKey of Object.keys(archiEntity.props)) {
               if (specializationProps.attrs[propKey]?.rule) {
                 let isValid = true;
-                // @ts-expect-error ts doesn't recognize test method in regex somehow
-                if (specializationProps.attrs[prop.key].rule.test) {
+                // @ts-ignore
+                if (specializationProps.attrs[propKey].rule.test) {
                   isValid = new RegExp(specializationProps.attrs[propKey].rule as RegExp).test(archiEntity.props[propKey]);
                 } else if (typeof specializationProps.attrs[propKey].rule === 'function') {
                   // @ts-expect-error ts doesn't recognize function interface
@@ -191,17 +181,15 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
 
             if (wrongFormatForProps.length) {
               lintResult.entity.errors[ErrorTypes.wrongPropValue].push({
-                layer: layerInLint,
-                element: archiEntity,
-                errorArgs: wrongFormatForProps.map(pr => `{${pr.key}:${pr.value}}`)
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, wrongFormatForProps.map(pr => `{${pr.key}:${pr.value}}`).join(', ')]
               });
 
-              summaryStat.incrementStat(errorLogConfig.wrongPropValue.logLevel);
+              summaryStat.incrementStat(lintConfig.errors.wrongPropValue.logLevel);
             }
           }
 
 
-          if (errorLogConfig.similarEntities.logLevel > 0) {
+          if (lintConfig.errors.similarEntities.logLevel > 0) {
             const similarities: { [key: string]: string } = {};
             for (const propKey of Object.keys(archiEntity.props)) {
               if (specializationProps.attrs[propKey]?.similarValidator && typeof specializationProps.attrs[propKey]?.similarValidator === 'function') {
@@ -220,12 +208,10 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
 
             if (Object.keys(similarities).length) {
               lintResult.entity.errors[ErrorTypes.similarEntities].push({
-                layer: layerInLint,
-                element: archiEntity,
-                errorArgs: [JSON.stringify(similarities)]
+                args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, JSON.stringify(similarities)]
               });
 
-              summaryStat.incrementStat(errorLogConfig.similarEntities.logLevel);
+              summaryStat.incrementStat(lintConfig.errors.similarEntities.logLevel);
             }
           }
         }
@@ -234,9 +220,10 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
     }
   }
 
-  if (infoLogConfig.summary.logLevel > 0) {
-    console.log(chalk.hex(infoLogConfig.summary.color)
-      .bold(`total warnings: ${summaryStat.warnings} and total errors: ${summaryStat.errors}`));
+  if (lintConfig.info.summary.logLevel > 0) {
+    lintResult.global.info[StatTypes.summary].push({
+      args: [summaryStat.warnings.toString(), summaryStat.errors.toString()]
+    });
   }
 
   return lintResult;

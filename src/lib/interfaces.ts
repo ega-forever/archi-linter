@@ -1,9 +1,9 @@
-import { ErrorTypes } from './defaultConfigs';
+export const genericSpecialization = 'generic'
 
 export interface IModelElement {
   id: string;
   name: string;
-  specialization: string;
+  specialization: string | 'generic';
   type: string;
   props: { [key: string]: string };
   path: string;
@@ -47,23 +47,21 @@ export interface ILintConfig {
 
 export interface ILintResult {
   global: {
-    summary: {
+    info: {
       [key: string]: Array<{
-        infoArgs: string[]
+        args: string[]
       }>
     },
-    errors: Array<{
-      [key: string]: {
-        errorArgs: string[]
-      }
-    }>
+    errors: {
+      [key: string]: Array<{
+        args: string[]
+      }>
+    }
   },
   entity: {
     errors: {
       [key: string]: Array<{
-        layer: string;
-        element: IModelElement;
-        errorArgs: string[]
+        args: string[]
       }>
     }
   }
