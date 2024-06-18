@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import { errorsDefaultConfig, infoLogDefaultConfig, StatTypes } from '../../lib/defaultConfigs';
-import { buildModelElementsFromCoArchiXML } from './utils';
+import { buildModelElementsFromCoArchiXML, buildModelFromArchiFile } from './utils';
 import * as vm from 'vm';
 import exampleConfig from '../../lib/exampleConfig';
 import lint from '../../lib/lint';
@@ -32,9 +32,15 @@ const init = async () => {
   lintConfig.errors = Object.assign({}, errorsDefaultConfig, lintConfig.errors);
   lintConfig.info = Object.assign({}, infoLogDefaultConfig, lintConfig.info);
 
+  let modelElements = [];
 
-  const archiDir = path.isAbsolute(lintConfig.dir) ? lintConfig.dir : path.join(process.cwd(), lintConfig.dir);
-  const modelElements = await buildModelElementsFromCoArchiXML(archiDir); // todo add condition for archimate file
+  if(lintConfig.file){
+    const filePath = path.isAbsolute(lintConfig.file) ? lintConfig.file : path.join(process.cwd(), lintConfig.file);
+    modelElements = await buildModelFromArchiFile(filePath);
+  }else if (lintConfig.dir){
+    const archiDir = path.isAbsolute(lintConfig.dir) ? lintConfig.dir : path.join(process.cwd(), lintConfig.dir);
+    modelElements = await buildModelElementsFromCoArchiXML(archiDir);
+  }
 
   const lintResult = await lint({ elements: modelElements }, lintConfig);
   const orderedOutputLevelAndKind = [

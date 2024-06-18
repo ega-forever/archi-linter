@@ -34,7 +34,7 @@ export const buildModelElementsFromCoArchiXML = async (archiDir: string): Promis
       href: string
     }>, // todo
     type: string,
-    props: {[key: string]: string},
+    props: { [key: string]: string },
     filePath: string
   }> = [];
 
@@ -100,7 +100,59 @@ export const buildModelElementsFromCoArchiXML = async (archiDir: string): Promis
     });
 }
 
-export const buildModelFromArchiFile = (filePath: string): IModelElement[] => {
+const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
+  const folderElements = folderObj.element || [];
+  const subFolders = folderObj.folder || [];
 
-  return null; // todo implement
+  const result = folderElements.map(item => {
+    return {
+      id: item.$.id,
+      name: item.$.name,
+      specialization: item.$.profiles,
+      type: item.$['xsi:type'].replace('archimate:', ''),
+      props: item.property?.reduce((acc, current) => {
+        acc[current.$.key] = current.$.value;
+        return acc;
+      }, {}) || {},
+      path: fullPath
+    } as IModelElement
+  });
+
+  for (const subFolder of subFolders) {
+    const foundElementsInPathNested = getAllElementsInArchiObject(subFolder, fullPath ? `${fullPath}/${subFolder.$.name}` : subFolder.$.name);
+    result.push(...foundElementsInPathNested);
+  }
+
+  return result;
+}
+
+export const buildModelFromArchiFile = async (filePath: string): Promise<IModelElement[]> => {
+  const parser = new xml2js.Parser();
+
+  const content = fs.readFileSync(filePath);
+  const parsedContent = await parser.parseStringPromise(content.toString());
+  const model = parsedContent['archimate:model'];
+
+  const foundElementsInPath = model.folder
+    .map(f => getAllElementsInArchiObject(f))
+    .reduce((acc, current) => [...acc, ...current], []);
+
+  const specializations = model.profile?.map(pr => pr.$) || [];
+  specializations.push({
+    name: 'generic',
+    id: null
+  });
+
+  return foundElementsInPath
+    .map(en => {
+      const specialization = specializations.find(p => p.id === en.specialization)?.name || genericSpecialization;
+      return {
+        id: en.id,
+        name: en.name || '',
+        specialization,
+        type: en.type,
+        props: en.props,
+        path: en.path
+      };
+    });
 }
