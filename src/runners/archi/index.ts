@@ -35,6 +35,7 @@ const init = async () => {
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',
+    'entity.info',
     'global.info'
   ];
 
