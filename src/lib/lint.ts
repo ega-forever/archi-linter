@@ -171,7 +171,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
             for (const propKey of Object.keys(archiEntity.props)) {
               if (specializationProps.attrs[propKey]?.rule) {
                 let isValid = true;
-                // @ts-ignore
+                // @ts-expect-error mute error for undefined key "test" since type can be not only regex
                 if (specializationProps.attrs[propKey].rule.test) {
                   isValid = new RegExp(specializationProps.attrs[propKey].rule as RegExp).test(archiEntity.props[propKey]);
                 } else if (typeof specializationProps.attrs[propKey].rule === 'function') {

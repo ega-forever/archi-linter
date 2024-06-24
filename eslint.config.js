@@ -10,10 +10,16 @@ module.exports = [
   // This is just an example for rules specific to JS files
   ...tsEslint.configs.recommendedTypeChecked.map((config) => ({
     ...config,
-    files: [ 'src/*.ts' ] // We use TS config only for TS files
+    files: [
+      'src/*.ts',
+      'src/**/*.ts'
+    ] // We use TS config only for TS files
   })),
   {
-    files: [ 'src/*.ts' ],
+    files: [
+      'src/*.ts',
+      'src/**/*.ts'
+    ],
     languageOptions: {
       parserOptions: {
         project: true,

@@ -5,10 +5,11 @@ import lint from '../../lib/lint';
 import messages from '../../lib/messages';
 import { ILintConfig } from '../../lib/interfaces';
 
-declare var $: any;
-declare var __DIR__: any;
-declare var load: any;
-declare var console: any;
+declare let $: any;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare let __DIR__: any;
+declare let load: any;
+declare let console: any;
 
 const init = async () => {
   const lintConfigPath = `${__DIR__}archilint.config.js`;
@@ -18,10 +19,10 @@ const init = async () => {
 
   try {
     lintConfig = load(lintConfigPath);
-  }catch (e) {
+  } catch (e) {
     console.log(`config hasn't been found in current dir (${lintConfigPath}), creating a new one...`);
 
-    $.fs.writeFile(lintConfigPath, exampleConfig, "UTF8");
+    $.fs.writeFile(lintConfigPath, exampleConfig, 'UTF8');
     console.log('config created. Edit archilint.config.js according to your case and re-run the command');
   }
 
@@ -47,7 +48,7 @@ const init = async () => {
       console.setTextColor(rgbColor.r, rgbColor.g, rgbColor.b);
 
       for (const outputResult of outputResults) {
-        console.log(messages[kind][level][outputType](outputResult.args))
+        console.log(messages[kind][level][outputType](outputResult.args));
       }
 
       console.setDefaultTextColor();

@@ -1,8 +1,13 @@
 import { genericSpecialization, IModelElement } from '../../lib/interfaces';
 
-declare var $: any;
+declare let $: any;
 
-const elementsInPath = (path, fullPath = '') => {
+const toUpperCamelCase = (str: string) => {
+  const camelCase = str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
+
+const elementsInPath = (path: string, fullPath: string = '') => {
   const elements = $(path).children('element');
   const views = $(path).children('view');
   const subFolders = $(path).children('folder');
@@ -23,7 +28,7 @@ const elementsInPath = (path, fullPath = '') => {
   }
 
   return result;
-}
+};
 
 export const buildModelElementsFromArchi = async (): Promise<IModelElement[]> => {
   const folders = $('folder');
@@ -38,7 +43,7 @@ export const buildModelElementsFromArchi = async (): Promise<IModelElement[]> =>
   }
 
   return totalElements;
-}
+};
 
 export const hexToRgb = (hex: string) => {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -50,9 +55,4 @@ export const hexToRgb = (hex: string) => {
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
   } : null;
-}
-
-const toUpperCamelCase = (str: string) => {
-  const camelCase = str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
-  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-}
+};

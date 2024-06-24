@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { genericSpecialization, IModelElement } from '../../lib/interfaces';
 import xml2js from 'xml2js';
-import { it } from 'node:test';
 
 export const getAllXmlFilesInPath = (dir: string, fileList: string[] = []): string[] => {
   const files = fs.readdirSync(dir);
@@ -48,11 +47,11 @@ export const buildModelElementsFromCoArchiXML = async (archiDir: string): Promis
       specializations: parsedContent[entityType].profiles?.map(kv => kv.$) || [],
       type: entityType.replace('archimate:', ''),
       props: parsedContent[entityType]?.properties?.map(kv => kv.$)
-          .filter(kv => kv)
-          .reduce((acc, current) => {
-            acc[current.key] = current.value;
-            return acc;
-          }, {})
+        .filter(kv => kv)
+        .reduce((acc, current) => {
+          acc[current.key] = current.value;
+          return acc;
+        }, {})
         || {},
       filePath: file
     };
@@ -98,7 +97,7 @@ export const buildModelElementsFromCoArchiXML = async (archiDir: string): Promis
         path: entityPath
       };
     });
-}
+};
 
 const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
   const folderElements = folderObj.element || [];
@@ -111,13 +110,13 @@ const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
       specialization: item.$.profiles,
       type: item.$['xsi:type'].replace('archimate:', ''),
       props: item.property?.reduce((acc, current) => {
-        if(current?.$?.key){
+        if (current?.$?.key) {
           acc[current.$.key] = current.$.value;
         }
         return acc;
       }, {}) || {},
       path: fullPath
-    } as IModelElement
+    } as IModelElement;
   });
 
   for (const subFolder of subFolders) {
@@ -126,7 +125,7 @@ const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
   }
 
   return result;
-}
+};
 
 export const buildModelFromArchiFile = async (filePath: string): Promise<IModelElement[]> => {
   const parser = new xml2js.Parser();
@@ -157,4 +156,4 @@ export const buildModelFromArchiFile = async (filePath: string): Promise<IModelE
         path: en.path
       };
     });
-}
+};

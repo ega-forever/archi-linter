@@ -1,8 +1,9 @@
-export const genericSpecialization = 'generic'
+export const genericSpecialization = 'generic';
 
 export interface IModelElement {
   id: string;
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   specialization: string | 'generic';
   type: string;
   props: { [key: string]: string };

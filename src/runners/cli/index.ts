@@ -34,10 +34,10 @@ const init = async () => {
 
   let modelElements = [];
 
-  if(lintConfig.file){
+  if (lintConfig.file) {
     const filePath = path.isAbsolute(lintConfig.file) ? lintConfig.file : path.join(process.cwd(), lintConfig.file);
     modelElements = await buildModelFromArchiFile(filePath);
-  }else if (lintConfig.dir){
+  } else if (lintConfig.dir) {
     const archiDir = path.isAbsolute(lintConfig.dir) ? lintConfig.dir : path.join(process.cwd(), lintConfig.dir);
     modelElements = await buildModelElementsFromCoArchiXML(archiDir);
   }
