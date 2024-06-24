@@ -102,6 +102,13 @@ export default `module.exports = {
     summary: {
       logLevel: 1,
       color: '#0c04fd'
+    },
+    showEntities: {
+      logLevel: 1,
+      color: '#fd0499',
+      entities: [
+        'Business.BusinessActor.generic'
+      ]
     }
   }
 }

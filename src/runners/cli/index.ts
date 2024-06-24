@@ -46,6 +46,7 @@ const init = async () => {
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',
+    'entity.info',
     'global.info'
   ];
 
@@ -65,7 +66,7 @@ const init = async () => {
     }
   }
 
-  const summaryErrors = lintResult.global.info[StatTypes.summary][0]?.args[1] || '0';
+  const summaryErrors = lintResult.global.info[StatTypes.SUMMARY][0]?.args[1] || '0';
 
   if (parseInt(summaryErrors) === 0) {
     process.exit(1);

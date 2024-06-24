@@ -111,7 +111,9 @@ const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
       specialization: item.$.profiles,
       type: item.$['xsi:type'].replace('archimate:', ''),
       props: item.property?.reduce((acc, current) => {
-        acc[current.$.key] = current.$.value;
+        if(current?.$?.key){
+          acc[current.$.key] = current.$.value;
+        }
         return acc;
       }, {}) || {},
       path: fullPath

@@ -8,20 +8,23 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
   const lintResult: ILintResult = {
     global: {
       info: {
-        [StatTypes.stat]: [],
-        [StatTypes.summary]: []
+        [StatTypes.STAT]: [],
+        [StatTypes.SUMMARY]: []
       },
       errors: {
-        [ErrorTypes.unregisteredEntities]: []
+        [ErrorTypes.UNREGISTERED_ENTITIES]: []
       }
     },
     entity: {
       errors: {
-        [ErrorTypes.unknownProps]: [],
-        [ErrorTypes.wrongPropValue]: [],
-        [ErrorTypes.missedMandatoryProp]: [],
-        [ErrorTypes.wrongFolder]: [],
-        [ErrorTypes.similarEntities]: []
+        [ErrorTypes.UNKNOWN_PROPS]: [],
+        [ErrorTypes.WRONG_PROP_VALUE]: [],
+        [ErrorTypes.MISSED_MANDATORY_PROP]: [],
+        [ErrorTypes.WRONG_FOLDER]: [],
+        [ErrorTypes.SIMILAR_ENTITIES]: []
+      },
+      info: {
+        [StatTypes.SHOW_ENTITIES]: []
       }
     }
   };
@@ -73,7 +76,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           return prev;
         }, new Array<string>());
 
-      lintResult.global.errors[ErrorTypes.unregisteredEntities].push({
+      lintResult.global.errors[ErrorTypes.UNREGISTERED_ENTITIES].push({
         args: unregisteredEntitiesWithSpecializationsStr
       });
 
@@ -95,15 +98,22 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           en.type === entityInLayerInLint && en.specialization === specialization);
 
         if (lintConfig.info.stat.logLevel > 0) {
-          lintResult.global.info[StatTypes.stat].push({
+          lintResult.global.info[StatTypes.STAT].push({
             args: [layerInLint, entityInLayerInLint, specialization, archiEntities.length.toString()]
           });
+        }
+
+        if (lintConfig.info.showEntities.logLevel > 0 && lintConfig.info.showEntities.entities?.includes(`${layerInLint}.${entityInLayerInLint}.${specialization}`)) {
+          for (const archiEntity of archiEntities) {
+            lintResult.entity.info[StatTypes.SHOW_ENTITIES].push({
+              args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization]
+            });
+          }
         }
 
         for (const archiEntity of archiEntities) {
           // validates that all mandatory props are exist
           const archiEntityPropKeys = Object.keys(archiEntity.props);
-
 
           const specializationProps = specializationPropsDefinitions
             .sort((defA, defB) => defB.folders.length - defA.folders.length)
@@ -115,11 +125,10 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
               return isMatchFolder || def.folders.length === 0;
             });
 
-
           // validates that entity exists only in specified folders
           if (!specializationProps) {
             if (lintConfig.errors.wrongFolder.logLevel > 0) {
-              lintResult.entity.errors[ErrorTypes.wrongFolder].push({
+              lintResult.entity.errors[ErrorTypes.WRONG_FOLDER].push({
                 args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization]
               });
 
@@ -134,7 +143,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
               .filter(key => specializationProps.attrs[key].mandatory && !archiEntityPropKeys.includes(key));
 
             if (missedLintMandatoryProps.length) {
-              lintResult.entity.errors[ErrorTypes.missedMandatoryProp].push({
+              lintResult.entity.errors[ErrorTypes.MISSED_MANDATORY_PROP].push({
                 args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, missedLintMandatoryProps.join(', ')]
               });
 
@@ -148,7 +157,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
               .filter(pr => !specializationProps.attrs[pr]);
 
             if (unknownPropsInEntity.length) {
-              lintResult.entity.errors[ErrorTypes.unknownProps].push({
+              lintResult.entity.errors[ErrorTypes.UNKNOWN_PROPS].push({
                 args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, unknownPropsInEntity.join(', ')]
               });
 
@@ -180,7 +189,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
             }
 
             if (wrongFormatForProps.length) {
-              lintResult.entity.errors[ErrorTypes.wrongPropValue].push({
+              lintResult.entity.errors[ErrorTypes.WRONG_PROP_VALUE].push({
                 args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, wrongFormatForProps.map(pr => `{${pr.key}:${pr.value}}`).join(', ')]
               });
 
@@ -207,7 +216,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
             }
 
             if (Object.keys(similarities).length) {
-              lintResult.entity.errors[ErrorTypes.similarEntities].push({
+              lintResult.entity.errors[ErrorTypes.SIMILAR_ENTITIES].push({
                 args: [layerInLint, archiEntity.path, archiEntity.name, archiEntity.type, archiEntity.specialization, JSON.stringify(similarities)]
               });
 
@@ -221,7 +230,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
   }
 
   if (lintConfig.info.summary.logLevel > 0) {
-    lintResult.global.info[StatTypes.summary].push({
+    lintResult.global.info[StatTypes.SUMMARY].push({
       args: [summaryStat.warnings.toString(), summaryStat.errors.toString()]
     });
   }

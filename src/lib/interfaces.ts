@@ -41,6 +41,7 @@ export interface ILintConfig {
     [infoType: string]: {
       logLevel: 0 | 1;
       color: string;
+      entities?: string[];
     }
   }
 }
@@ -60,6 +61,11 @@ export interface ILintResult {
   },
   entity: {
     errors: {
+      [key: string]: Array<{
+        args: string[]
+      }>
+    },
+    info: {
       [key: string]: Array<{
         args: string[]
       }>
