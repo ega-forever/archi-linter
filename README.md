@@ -180,6 +180,14 @@ module.exports = {
     summary: {
       logLevel: 0 | 1,
       color: <hex_format>
+    },
+    showEntities: {
+      logLevel: 0 | 1,
+      color: <hex_format>,
+      entities: [
+        <layer>.<entity_type>.<specialization>,
+        ...
+      ]
     }
   }
 }
@@ -298,6 +306,13 @@ module.exports = {
     summary: {
       logLevel: 1,
       color: '#0c04fd'
+    },
+    showEntities: {
+      logLevel: 1,
+      color: '#fd0499',
+      entities: [
+        'Business.BusinessActor.generic'
+      ]
     }
   }
 }
@@ -498,10 +513,11 @@ If any of the errors are not specified in config, then default setting will be u
 7) the `info` contains settings for stats output. The structure similar to errors. There are 2 kinds of `info`: `stats` - will display verbose output about scanned entities, and `summary` - will display stats about found errors
 
 
-| stats                | default logLevel | default color | description                                        |
-|----------------------|------------------|---------------|----------------------------------------------------|
-| stat                 | 1                | "#25fd04"     | will display verbose output about scanned entities |
-| summary              | 1                | "#0468fd"     | will display stats about found errors and warnings |
+| stats        | default logLevel | default color | extra properties   | description                                                                                                                                                                                     |
+|--------------|------------------|---------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| stat         | 1                | "#25fd04"     |                    | will display verbose output about scanned entities                                                                                                                                              |
+| summary      | 1                | "#0468fd"     |                    | will display stats about found errors and warnings                                                                                                                                              |
+| showEntities | 1                | "#fd0499"     | entities: string[] | will print entities with specified specialization. entities accept elements in the following format: ``<layer>.<entity_type>.<specialization>``, for example ``Business.BusinessActor.generic`` |
 
 All stats types may have 2 logLevels: 0 - mute output, 1 - display output.
 If any of the stats are not specified in config, then default setting will be used.
