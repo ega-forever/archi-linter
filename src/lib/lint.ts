@@ -176,7 +176,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
                   isValid = new RegExp(specializationProps.attrs[propKey].rule as RegExp).test(archiEntity.props[propKey]);
                 } else if (typeof specializationProps.attrs[propKey].rule === 'function') {
                   // @ts-expect-error ts doesn't recognize function interface
-                  isValid = await specializationProps.attrs[prop.key].rule(prop.key, prop.value);
+                  isValid = await specializationProps.attrs[propKey].rule(propKey, archiEntity.props[propKey]);
                 }
 
                 if (!isValid) {
