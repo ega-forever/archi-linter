@@ -153,6 +153,7 @@ module.exports = {
                   mandatpory: true | false,
                   rule: regex | async function | undefined,
                   similarValidator: async function | undefined
+                  branches: Array<string | Regex>
                 },
                 ...
               ],
@@ -487,10 +488,11 @@ This also applies, when there are entities with and without specialization. So, 
 4) the `attrs` contains the entity props. Each prop has its own validators. For now, there are 3 validators: 
    
 | validator        | optional | format                                                                                                                                      | description                                                                                                                                                |
-|----------------- | -------- |---------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| mandatory        |   false  | boolean (true or false)                                                                                                                     | check if property exists in the following entity (if set to true), if set to false - then marks this property as known (will be skipped by `unknownProps`) |
-| rule             |   true   | regex (like `/APP-[0-9]{1,3}-[0-9]{1,3}[\.]{0,1}[0-9]{0,3}/g`) or async function ``async (prop_key, prop_value): boolean => true or false`` | checks if prop's value is correct                                                                                                                          |
-| similarValidator |   true   | async function ``async (prop_key, prop_value, prop_values_of_other_entities): boolean=> true or false``                                     | checks if there are equal or similar values for the same property's key within the same specialization                                                     |
+|------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| mandatory        | false    | boolean (true or false)                                                                                                                     | check if property exists in the following entity (if set to true), if set to false - then marks this property as known (will be skipped by `unknownProps`) |
+| rule             | true     | regex (like `/APP-[0-9]{1,3}-[0-9]{1,3}[\.]{0,1}[0-9]{0,3}/g`) or async function ``async (prop_key, prop_value): boolean => true or false`` | checks if prop's value is correct                                                                                                                          |
+| similarValidator | true     | async function ``async (prop_key, prop_value, prop_values_of_other_entities): boolean=> true or false``                                     | checks if there are equal or similar values for the same property's key within the same specialization                                                     |
+| branches         | true     | array of strings and regex (like ``[ 'master', /feature\/./ ]``)                                                                            | will check attribute only if model is on the specified git branches. Useful for gitflow                                                                    |
 
 5) the ``folders`` contains the relative paths (like you see in Archi), where entities should be located. Wildcards can also be used in paths (like `Customers/**`).
 Useful, when you have a strict folder structure and want to follow it. This one is optional, and you can leave folders as empty array `[]`.
@@ -529,4 +531,4 @@ If any of the stats are not specified in config, then default setting will be us
 
 # Copyright
 
-Copyright (c) 2024 Egor Zuev
+Copyright (c) 2024-2025 Egor Zuev

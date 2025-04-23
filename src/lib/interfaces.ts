@@ -11,7 +11,8 @@ export interface IModelElement {
 }
 
 export interface IModel {
-  elements: Array<IModelElement>
+  elements: Array<IModelElement>,
+  gitBranch?: string | null
 }
 
 export interface ILintConfig {
@@ -25,6 +26,7 @@ export interface ILintConfig {
               mandatory: boolean;
               rule?: RegExp | ((propKey: string, propValue: string) => Promise<boolean>);
               similarValidator?: ((propKey: string, propValue: string, otherEntitiesPropValues: string[]) => Promise<boolean>);
+              branches?: Array<string | RegExp>
             };
           };
           folders: string[]

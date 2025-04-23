@@ -112,9 +112,6 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
         }
 
         for (const archiEntity of archiEntities) {
-          // validates that all mandatory props are exist
-          const archiEntityPropKeys = Object.keys(archiEntity.props);
-
           const specializationProps = specializationPropsDefinitions
             .sort((defA, defB) => defB.folders.length - defA.folders.length)
             .find(def => {
@@ -138,9 +135,26 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
             continue;
           }
 
+          const specializationPropsAttrs = Object.fromEntries(
+            Object.entries(specializationProps.attrs)
+              .filter(attrPair =>
+                !model.gitBranch ||
+                !attrPair[1].branches?.length ||
+                !!attrPair[1].branches?.find((b: any) => b.test ? b.test(model.gitBranch) : b === model.gitBranch)
+              )
+          );
+
+          // validates that all mandatory props are exist
+          const archiEntityPropKeys = Object.keys(archiEntity.props)
+            .filter(key =>
+              !model.gitBranch ||
+              !specializationProps.attrs[key]?.branches?.length ||
+              !!specializationProps.attrs[key]?.branches?.find((b: any) => b.test ? b.test(model.gitBranch) : b === model.gitBranch)
+            );
+
           if (lintConfig.errors.missedMandatoryProp.logLevel > 0) {
-            const missedLintMandatoryProps = Object.keys(specializationProps.attrs)
-              .filter(key => specializationProps.attrs[key].mandatory && !archiEntityPropKeys.includes(key));
+            const missedLintMandatoryProps = Object.keys(specializationPropsAttrs)
+              .filter(key => specializationPropsAttrs[key].mandatory && !archiEntityPropKeys.includes(key));
 
             if (missedLintMandatoryProps.length) {
               lintResult.entity.errors[ErrorTypes.MISSED_MANDATORY_PROP].push({
@@ -154,7 +168,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           // validates that there are no unknown props
           if (lintConfig.errors.unknownProps.logLevel > 0) {
             const unknownPropsInEntity = archiEntityPropKeys
-              .filter(pr => !specializationProps.attrs[pr]);
+              .filter(pr => !specializationPropsAttrs[pr]);
 
             if (unknownPropsInEntity.length) {
               lintResult.entity.errors[ErrorTypes.UNKNOWN_PROPS].push({
@@ -169,14 +183,14 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           if (lintConfig.errors.wrongPropValue.logLevel > 0) {
             const wrongFormatForProps: Array<{ key: string, value: string }> = [];
             for (const propKey of Object.keys(archiEntity.props)) {
-              if (specializationProps.attrs[propKey]?.rule) {
+              if (specializationPropsAttrs[propKey]?.rule) {
                 let isValid = true;
                 // @ts-expect-error mute error for undefined key "test" since type can be not only regex
-                if (specializationProps.attrs[propKey].rule.test) {
-                  isValid = new RegExp(specializationProps.attrs[propKey].rule as RegExp).test(archiEntity.props[propKey]);
-                } else if (typeof specializationProps.attrs[propKey].rule === 'function') {
+                if (specializationPropsAttrs[propKey].rule.test) {
+                  isValid = new RegExp(specializationPropsAttrs[propKey].rule as RegExp).test(archiEntity.props[propKey]);
+                } else if (typeof specializationPropsAttrs[propKey].rule === 'function') {
                   // @ts-expect-error ts doesn't recognize function interface
-                  isValid = await specializationProps.attrs[propKey].rule(propKey, archiEntity.props[propKey]);
+                  isValid = await specializationPropsAttrs[propKey].rule(propKey, archiEntity.props[propKey]);
                 }
 
                 if (!isValid) {
@@ -201,14 +215,14 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
           if (lintConfig.errors.similarEntities.logLevel > 0) {
             const similarities: { [key: string]: string } = {};
             for (const propKey of Object.keys(archiEntity.props)) {
-              if (specializationProps.attrs[propKey]?.similarValidator && typeof specializationProps.attrs[propKey]?.similarValidator === 'function') {
+              if (specializationPropsAttrs[propKey]?.similarValidator && typeof specializationPropsAttrs[propKey]?.similarValidator === 'function') {
                 const otherArchiEntitiesPropValues = archiEntities
                   .filter(ae => ae !== archiEntity)
                   // eslint-disable-next-line @typescript-eslint/no-loop-func
                   .map(ae => ae.props[propKey])
                   .filter(pr => pr);
 
-                const isSimilar = await specializationProps.attrs[propKey].similarValidator(propKey, archiEntity.props[propKey], otherArchiEntitiesPropValues);
+                const isSimilar = await specializationPropsAttrs[propKey].similarValidator(propKey, archiEntity.props[propKey], otherArchiEntitiesPropValues);
                 if (isSimilar) {
                   similarities[propKey] = archiEntity.props[propKey];
                 }
@@ -231,7 +245,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
 
   if (lintConfig.info.summary.logLevel > 0) {
     lintResult.global.info[StatTypes.SUMMARY].push({
-      args: [summaryStat.warnings.toString(), summaryStat.errors.toString()]
+      args: [summaryStat.warnings.toString(), summaryStat.errors.toString(), model.gitBranch]
     });
   }
 

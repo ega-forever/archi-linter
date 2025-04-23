@@ -17,7 +17,7 @@ export default {
   },
   info: {
     global: {
-      [StatTypes.SUMMARY]: (args: string[]) => `[model summary] total warnings: ${args[0]} and total errors: ${args[1]}`,
+      [StatTypes.SUMMARY]: (args: string[]) => `[model summary] total warnings: ${args[0]}, total errors: ${args[1]}, branch: ${args[2]}`,
       [StatTypes.STAT]: (args: string[]) => `[model info] found layer [${args[0]}] with entity (component - ${args[1]}, specialization - ${args[2]}) - ${args[3]} items`
     },
     entity: {
