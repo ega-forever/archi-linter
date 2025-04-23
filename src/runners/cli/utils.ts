@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { genericSpecialization, IModelElement } from '../../lib/interfaces';
 import xml2js from 'xml2js';
+import git from 'isomorphic-git';
 
 export const getAllXmlFilesInPath = (dir: string, fileList: string[] = []): string[] => {
   const files = fs.readdirSync(dir);
@@ -109,6 +110,13 @@ const getAllElementsInArchiObject = (folderObj, fullPath = '') => {
       name: item.$.name,
       specialization: item.$.profiles,
       type: item.$['xsi:type'].replace('archimate:', ''),
+      source: item.$.source,
+      target: item.$.target,
+      children: item?.child?.map(c => c.$.archimateElement)
+        .filter(c => c)
+
+
+        || [],
       props: item.property?.reduce((acc, current) => {
         if (current?.$?.key) {
           acc[current.$.key] = current.$.value;
@@ -152,8 +160,37 @@ export const buildModelFromArchiFile = async (filePath: string): Promise<IModelE
         name: en.name || '',
         specialization,
         type: en.type,
+        source: en.source,
+        target: en.target,
+        children: en.children,
         props: en.props,
         path: en.path
       };
     });
+};
+
+export const getCurrentGitBranch = async (modelPath: string, parentLevels = 3) => {
+  let gitDir = null;
+  let currentLevel = 0;
+
+
+  while (gitDir === null && parentLevels > currentLevel) {
+    const p = path.normalize(path.join(modelPath, ...new Array(currentLevel).fill('..')));
+    const filesInDir = fs.readdirSync(p);
+    const isGitDir = !!filesInDir.find(f => f === '.git');
+    if (isGitDir) {
+      gitDir = p;
+    }
+    currentLevel++;
+  }
+
+  if (!gitDir) {
+    return null;
+  }
+
+  return await git.currentBranch({
+    fs,
+    dir: gitDir,
+    fullname: false
+  }) || null;
 };

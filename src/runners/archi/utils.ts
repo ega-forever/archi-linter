@@ -1,6 +1,8 @@
 import { genericSpecialization, IModelElement } from '../../lib/interfaces';
 
 declare let $: any;
+declare let Java: any;
+declare let model: any;
 
 const toUpperCamelCase = (str: string) => {
   const camelCase = str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
@@ -23,7 +25,7 @@ const elementsInPath = (path: string, fullPath: string = '') => {
     path: fullPath
   }) as IModelElement);
   for (const subFolder of subFolders) {
-    const foundElementsInPathNested = elementsInPath(subFolder, fullPath ? `${ fullPath }/${ subFolder.name }` : subFolder.name);
+    const foundElementsInPathNested = elementsInPath(subFolder, fullPath ? `${fullPath}/${subFolder.name}` : subFolder.name);
     result.push(...foundElementsInPathNested);
   }
 
@@ -55,4 +57,34 @@ export const hexToRgb = (hex: string) => {
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
   } : null;
+};
+
+export const getCurrentGitBranch = () => {
+  const File = Java.type('java.io.File');
+  const archiPluginClass = Java.type('com.archimatetool.editor.ArchiPlugin');
+  const archiPluginBundle = archiPluginClass.INSTANCE.getBundle();
+  const IArchiModelClass = archiPluginBundle.loadClass('com.archimatetool.model.IArchimateModel');
+  const EditorModelManagerClass = archiPluginBundle.loadClass('com.archimatetool.editor.model.impl.EditorModelManager');
+
+  const bundles = archiPluginBundle.getBundleContext().getBundles();
+  const activatorId = 'org.archicontribs.modelrepository.ModelRepositoryPlugin';
+
+  const bundle = bundles.find((b: any) => b.getHeaders().get('Bundle-Activator') === activatorId);
+
+  if (!bundle) {
+    return null;
+  }
+
+  const graficoUtils = bundle.loadClass('org.archicontribs.modelrepository.grafico.GraficoUtils');
+  const localRepoFolderMethod = graficoUtils.getMethod('getLocalRepositoryFolderForModel', IArchiModelClass);
+
+  const modelManager = new EditorModelManagerClass();
+  const localModel = modelManager.loadModel(new File(model.getPath()));
+  const localRepoFolder = localRepoFolderMethod.invoke(null, localModel);
+
+  const gitClass = bundle.loadClass('org.archicontribs.modelrepository.grafico.ArchiRepository');
+  const gitInstance = new gitClass(localRepoFolder);
+  const branchStatus = gitInstance.getBranchStatus();
+  const localBranch = branchStatus.getCurrentLocalBranch();
+  return localBranch.getShortName();
 };

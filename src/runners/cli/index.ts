@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import { errorsDefaultConfig, infoLogDefaultConfig, StatTypes } from '../../lib/defaultConfigs';
-import { buildModelElementsFromCoArchiXML, buildModelFromArchiFile } from './utils';
+import { buildModelElementsFromCoArchiXML, buildModelFromArchiFile, getCurrentGitBranch } from './utils';
 import * as vm from 'vm';
 import exampleConfig from '../../lib/exampleConfig';
 import lint from '../../lib/lint';
@@ -33,6 +33,7 @@ const init = async () => {
   lintConfig.info = Object.assign({}, infoLogDefaultConfig, lintConfig.info);
 
   let modelElements = [];
+  let gitBranch = null;
 
   if (lintConfig.file) {
     const filePath = path.isAbsolute(lintConfig.file) ? lintConfig.file : path.join(process.cwd(), lintConfig.file);
@@ -40,9 +41,10 @@ const init = async () => {
   } else if (lintConfig.dir) {
     const archiDir = path.isAbsolute(lintConfig.dir) ? lintConfig.dir : path.join(process.cwd(), lintConfig.dir);
     modelElements = await buildModelElementsFromCoArchiXML(archiDir);
+    gitBranch = await getCurrentGitBranch(archiDir).catch(() => null);
   }
 
-  const lintResult = await lint({ elements: modelElements }, lintConfig);
+  const lintResult = await lint({ elements: modelElements, gitBranch }, lintConfig);
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',

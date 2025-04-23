@@ -1,5 +1,5 @@
 import { errorsDefaultConfig, infoLogDefaultConfig } from '../../lib/defaultConfigs';
-import { buildModelElementsFromArchi, hexToRgb } from './utils';
+import { buildModelElementsFromArchi, getCurrentGitBranch, hexToRgb } from './utils';
 import exampleConfig from '../../lib/exampleConfig';
 import lint from '../../lib/lint';
 import messages from '../../lib/messages';
@@ -30,8 +30,12 @@ const init = async () => {
   lintConfig.info = Object.assign({}, infoLogDefaultConfig, lintConfig.info);
 
   const modelElements = await buildModelElementsFromArchi();
+  let gitBranch = null;
+  try {
+    gitBranch = getCurrentGitBranch();
+  } catch (e) {}
 
-  const lintResult = await lint({ elements: modelElements }, lintConfig);
+  const lintResult = await lint({ elements: modelElements, gitBranch }, lintConfig);
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',
