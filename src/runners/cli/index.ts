@@ -25,7 +25,11 @@ const init = async () => {
   const vmModule = { exports: {} };
   const context = vm.createContext({
     exports: vmModule.exports,
-    module: vmModule
+    module: vmModule,
+    process: {
+      env: process.env
+    },
+    path
   });
 
   const lintConfig = vm.runInNewContext(lintConfigFile, context);

@@ -1,11 +1,11 @@
 {
   "name": "archi-linter",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "linter for archi",
   "main": "index.js",
   "bin": "./dist/runners/cli/index.js",
   "scripts": {
-    "start:cli": "npx ts-node src/cli/index.ts",
+    "start:cli": "npx ts-node src/runners/cli/index.ts",
     "build": "rm -rf dist && tsc",
     "build:webpack:cli": "rm -rf dist_binaries && webpack --config webpack.cli.config.js",
     "build:webpack:archi": "rm -rf binaries/linter.ajs && webpack --config webpack.archi.config.js",
