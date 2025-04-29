@@ -198,6 +198,15 @@ module.exports = {
 7) edit config according to your needs
 8) run linter again. The linter will now use created config, validate the model and return output (like any linter do)
 
+#### Environment variables
+There are some env. vars (for different cases, mostly related to CI and other automation tools)
+
+| variable                | description                                                                                                       |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------|
+| ARCHI_LINTER_GIT_BRANCH | in case the .git directory is not available but lint config use branches filter, you can specify this var instead |
+
+
+
 ### as jArchi script
 1) download linter.ajs from the [release page](https://github.com/ega-forever/archi-linter/releases)
 2) run linter.ajs from archi studio

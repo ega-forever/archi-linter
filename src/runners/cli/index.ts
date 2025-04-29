@@ -45,7 +45,7 @@ const init = async () => {
   } else if (lintConfig.dir) {
     const archiDir = path.isAbsolute(lintConfig.dir) ? lintConfig.dir : path.join(process.cwd(), lintConfig.dir);
     modelElements = await buildModelElementsFromCoArchiXML(archiDir);
-    gitBranch = await getCurrentGitBranch(archiDir).catch(() => null);
+    gitBranch = process.env.ARCHI_LINTER_GIT_BRANCH || await getCurrentGitBranch(archiDir).catch(() => null);
   }
 
   const lintResult = await lint({ elements: modelElements, gitBranch }, lintConfig);
