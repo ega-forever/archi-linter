@@ -48,7 +48,7 @@ const init = async () => {
     gitBranch = process.env.ARCHI_LINTER_GIT_BRANCH || await getCurrentGitBranch(archiDir).catch(() => null);
   }
 
-  const lintResult = await lint({ elements: modelElements, gitBranch }, lintConfig);
+  const { lintResult, summaryStat } = await lint({ elements: modelElements, gitBranch }, lintConfig);
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',
@@ -72,9 +72,7 @@ const init = async () => {
     }
   }
 
-  const summaryErrors = lintResult.global.info[StatTypes.SUMMARY][0]?.args[1] || '0';
-
-  if (parseInt(summaryErrors) === 0) {
+  if (summaryStat.errors > 0) {
     process.exit(1);
   }
 };

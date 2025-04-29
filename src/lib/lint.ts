@@ -249,7 +249,7 @@ const lint = async (model: IModel, lintConfig: ILintConfig) => {
     });
   }
 
-  return lintResult;
+  return { lintResult, summaryStat };
 };
 
 export default lint;

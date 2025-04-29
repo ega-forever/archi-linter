@@ -33,9 +33,10 @@ const init = async () => {
   let gitBranch = null;
   try {
     gitBranch = getCurrentGitBranch();
-  } catch (e) {}
+  } catch (e) {
+  }
 
-  const lintResult = await lint({ elements: modelElements, gitBranch }, lintConfig);
+  const { lintResult } = await lint({ elements: modelElements, gitBranch }, lintConfig);
   const orderedOutputLevelAndKind = [
     'global.errors',
     'entity.errors',
